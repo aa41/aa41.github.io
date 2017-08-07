@@ -183,9 +183,9 @@
         <div class="col-md-8 col-md-offset-2">
       		<p>自从去年开始接触RxJava,深深的被rxjava的设计吸引，粗略的阅读了RxJava1的源码之后，感触颇深，今年年初项目更是转用了RxJava2，对RxJava这种函数式编程更加感兴趣，不过本文的重点不在于源码解析，如果想看源码解析，可以出门到这里–&gt;:<a href="http://blog.csdn.net/zxt0601/article/details/61614799" target="_blank" rel="external">zxt0601</a><br>如果你上文已经看完了，那么我们不难发现，其实RxJava本身是观察者模式，通过Observable订阅者subscribe方法订阅observer观察者，我们首先看一下Observable中的create方法：</p>
 <p><code>public static &lt;T&gt; Observable&lt;T&gt; create(ObservableOnSubscribe&lt;T&gt; source) {
-        ObjectHelper.requireNonNull(source, &quot;source is null&quot;);
-        return RxJavaPlugins.onAssembly(new ObservableCreate&lt;T&gt;(source));
-    }</code></p>
+            ObjectHelper.requireNonNull(source, &quot;source is null&quot;);
+            return RxJavaPlugins.onAssembly(new ObservableCreate&lt;T&gt;(source));
+        }</code></p>
 <p>首先我们先看ObservableOnSubscribe参数，这是一个接口，内部实现也很简单：</p>
 <p>`<br>public interface ObservableOnSubscribe<t> {</t></p>
 <pre><code>/**
@@ -196,24 +196,24 @@
 void subscribe(@NonNull ObservableEmitter&lt;T&gt; e) throws Exception;
 </code></pre><p>}<br>`</p>
 <p>而ObservableEmitter也是一个接口类，而他的作用就比较明显了，我们这里主要看一个ObservableEmitter的父类Emitter：</p>
-<p>`<br>public interface Emitter<t> {</t></p>
-<pre><code>/**
- * Signal a normal value.
- * @param value the value to signal, not null
- */
-void onNext(@NonNull T value);
+<p>`<br>    public interface Emitter<t> {<br>        /**</t></p>
+<pre><code>     * Signal a normal value.
+     * @param value the value to signal, not null
+     */
+    void onNext(@NonNull T value);
 
-/**
- * Signal a Throwable exception.
- * @param error the Throwable to signal, not null
- */
-void onError(@NonNull Throwable error);
+    /**
+     * Signal a Throwable exception.
+     * @param error the Throwable to signal, not null
+     */
+    void onError(@NonNull Throwable error);
 
-/**
- * Signal a completion.
- */
-void onComplete();
-</code></pre><p>}<br>`</p>
+    /**
+     * Signal a completion.
+     */
+    void onComplete();
+}
+</code></pre><p>`</p>
 <p>到这里可能很多人会一头雾水，摸不着头脑，接下来我们找到ObservableCreate这个类中，就能很直观的看到其调用关系：</p>
 <p>`<br>public final class ObservableCreate<t> extends Observable<t> {<br>    final ObservableOnSubscribe<t> source;</t></t></t></p>
 <pre><code>public ObservableCreate(ObservableOnSubscribe&lt;T&gt; source) {
@@ -390,25 +390,25 @@ public interface LocationSettingsListener {
 </code></pre><p>`</p>
 <p>这样的话我们的定位封装就已经完成了，我们在代码中实验一波，activity代码如下：</p>
 <p><code>AMapRxHelper.createAMapLocation(new AMapRxHelper.LocationSettingsListener() {
-            @Override
-            public void locationOptions(AMapLocationClient client) {
-                AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
-                mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-                mLocationOption.setOnceLocation(true);
-                mLocationOption.setOnceLocationLatest(true);
-                client.setLocationOption(mLocationOption);
-            }
-        }).subscribe(new Consumer&lt;AMapLocation&gt;() {
-                    @Override
-                    public void accept(AMapLocation aMapLocation) throws Exception {
-                        Toast.makeText(MainActivity.this,aMapLocation.toStr(),Toast.LENGTH_SHORT).show();
-                    }
-                }, new Consumer&lt;Throwable&gt;() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Toast.makeText(MainActivity.this,throwable.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
-                });</code></p>
+                @Override
+                public void locationOptions(AMapLocationClient client) {
+                    AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
+                    mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+                    mLocationOption.setOnceLocation(true);
+                    mLocationOption.setOnceLocationLatest(true);
+                    client.setLocationOption(mLocationOption);
+                }
+            }).subscribe(new Consumer&lt;AMapLocation&gt;() {
+                        @Override
+                        public void accept(AMapLocation aMapLocation) throws Exception {
+                            Toast.makeText(MainActivity.this,aMapLocation.toStr(),Toast.LENGTH_SHORT).show();
+                        }
+                    }, new Consumer&lt;Throwable&gt;() {
+                        @Override
+                        public void accept(Throwable throwable) throws Exception {
+                            Toast.makeText(MainActivity.this,throwable.getMessage(),Toast.LENGTH_SHORT).show();
+                        }
+                    });</code></p>
 <p>这样写下来是不是要比高德原生的api更加舒服而且函数式呢？当然这只是其中一个例子，在源码的demo中还分别实现了poi搜索，输入关键字搜索，绑定EditText的关键字搜索，有兴趣的小伙伴可以去看下，顺便能给个star就更好了~</p>
 
             <div class="clearfix"></div>
