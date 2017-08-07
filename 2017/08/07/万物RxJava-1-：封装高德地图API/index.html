@@ -181,7 +181,7 @@
             </div>
         </div>
         <div class="col-md-8 col-md-offset-2">
-      		<p>自从去年开始接触RxJava,深深的被rxjava的设计吸引，粗略的阅读了RxJava1的源码之后，感触颇深，今年年初项目更是转用了RxJava2，对RxJava这种函数式编程更加感兴趣，不过本文的重点不在于源码解析，如果想看源码解析，可以出门到这里–&gt;:[zxt0601]{<a href="http://blog.csdn.net/zxt0601/article/details/61614799}" target="_blank" rel="external">http://blog.csdn.net/zxt0601/article/details/61614799}</a><br>如果你上文已经看完了，那么我们不难发现，其实RxJava本身是观察者模式，通过Observable订阅者subscribe方法订阅observer观察者，我们首先看一下Observable中的create方法：</p>
+      		<p>自从去年开始接触RxJava,深深的被rxjava的设计吸引，粗略的阅读了RxJava1的源码之后，感触颇深，今年年初项目更是转用了RxJava2，对RxJava这种函数式编程更加感兴趣，不过本文的重点不在于源码解析，如果想看源码解析，可以出门到这里–&gt;:<a href="http://blog.csdn.net/zxt0601/article/details/61614799" target="_blank" rel="external">zxt0601</a><br>如果你上文已经看完了，那么我们不难发现，其实RxJava本身是观察者模式，通过Observable订阅者subscribe方法订阅observer观察者，我们首先看一下Observable中的create方法：</p>
 <p><code>public static &lt;T&gt; Observable&lt;T&gt; create(ObservableOnSubscribe&lt;T&gt; source) {
         ObjectHelper.requireNonNull(source, &quot;source is null&quot;);
         return RxJavaPlugins.onAssembly(new ObservableCreate&lt;T&gt;(source));
@@ -306,7 +306,7 @@ public boolean isDisposed() {
     return DisposableHelper.isDisposed(get());
 }
 </code></pre><p>`</p>
-<p>看到这里各位看官大佬可能就比较明白了，当我们调用source.subscribe(parent)内部parent接口的各个方法时，其实最终还是调用了observer的的方法。<br>到这里之后，其实不难发现，如果我们想要对第三方的api进行封装，完成rxjava式的封装，也是轻而易举的。今天首先我们先尝试对高德地图的Api进行封装，首先这里是demo地址–&gt;[github]{<a href="https://github.com/aa41/AMapRxHelper}" target="_blank" rel="external">https://github.com/aa41/AMapRxHelper}</a><br>首先是高德官方定位的demo，请往这里看–&gt;[高德定位]{<a href="http://lbs.amap.com/api/android-location-sdk/guide/android-location/getlocation}" target="_blank" rel="external">http://lbs.amap.com/api/android-location-sdk/guide/android-location/getlocation}</a><br>我们通过demo分析，我们最终需要调用的是AMapLocation对象，而AMapLocation对象是在接口AMapLocationListener中进行调用，那么我们首先定义一个Observable如下：</p>
+<p>看到这里各位看官大佬可能就比较明白了，当我们调用source.subscribe(parent)内部parent接口的各个方法时，其实最终还是调用了observer的的方法。<br>到这里之后，其实不难发现，如果我们想要对第三方的api进行封装，完成rxjava式的封装，也是轻而易举的。今天首先我们先尝试对高德地图的Api进行封装，首先这里是demo地址–&gt;<a href="https://github.com/aa41/AMapRxHelper" target="_blank" rel="external">github</a><br>首先是高德官方定位的demo，请往这里看–&gt;<a href="http://lbs.amap.com/api/android-location-sdk/guide/android-location/getlocation" target="_blank" rel="external">高德定位</a><br>我们通过demo分析，我们最终需要调用的是AMapLocation对象，而AMapLocation对象是在接口AMapLocationListener中进行调用，那么我们首先定义一个Observable如下：</p>
 <p>`<br>public class LocationObservable extends Observable<amaplocation> {<br>    private final  AMapLocationClient aMapLocationClient;</amaplocation></p>
 <pre><code>public LocationObservable(AMapLocationClient aMapLocationClient) {
     this.aMapLocationClient = aMapLocationClient;
@@ -381,21 +381,8 @@ protected void subscribeActual(Observer&lt;? super AMapLocation&gt; observer) {
 <pre><code>public static void init(Application application) {
     app = application;
 }
-</code></pre><p><code>而定位所需要的AMapLocationClient需要很多的初始化方法，我们应交由调用者自己实现，那么该怎么办呢，我们不妨参照RxJava中map操作符的实现，通过一个transfer的接口实现：</code></p>
-<pre><code>public static Observable&lt;AMapLocation&gt; createAMapLocation(final LocationSettingsListener listener) {
-    AMapLocationClient client = new AMapLocationClient(app);
-    return Observable.just(client)
-            .flatMap(new Function&lt;AMapLocationClient, ObservableSource&lt;AMapLocation&gt;&gt;() {
-                @Override
-                public ObservableSource&lt;AMapLocation&gt; apply(@NonNull AMapLocationClient client) throws Exception {
-                    if (listener != null) {
-                        listener.locationOptions(client);
-                    }
-                    return new LocationObservable(client);
-                }
-            });
-
-}
+</code></pre><p><code>而定位所需要的AMapLocationClient需要很多的初始化方法，我们应交由调用者自己实现，那么该怎么办呢，我们不妨参照RxJava中map操作符的实现，通过一个transfer的接口实现：</code><br>    public static Observable<amaplocation> createAMapLocation(final LocationSettingsListener listener) {<br>        AMapLocationClient client = new AMapLocationClient(app);<br>        return Observable.just(client)<br>                .flatMap(new Function<amaplocationclient, observablesource<amaplocation="">&gt;() {<br>                    @Override<br>                    public ObservableSource<amaplocation> apply(@NonNull AMapLocationClient client) throws Exception {<br>                        if (listener != null) {<br>                            listener.locationOptions(client);<br>                        }<br>                        return new LocationObservable(client);<br>                    }<br>                });</amaplocation></amaplocationclient,></amaplocation></p>
+<pre><code>}
 
 public interface LocationSettingsListener {
     void locationOptions(AMapLocationClient client);
